@@ -1,0 +1,175 @@
+
+''' 记录格式和默认值: RR(rname=None, rtype=1, rclass=1, ttl=0, rdata=None)
+    RR(rname=rname,
+        ttl=int(ttl),
+        rtype=getattr(QTYPE,rtype),	QTYPE.A  QTYPE[1]
+        rclass=getattr(CLASS,rclass),	CLASS.IN CLASS[1]
+        rdata=rd.fromZone(rdata)
+    )
+    RR("abc.com",rdata=A("1.2.3.4")))
+        a.add_answer(RR("abc.com",QTYPE.A,rdata=A("1.2.3.4"),ttl=60))
+        a.add_answer(RR("xxx.abc.com",QTYPE.A,rdata=A("1.2.3.4")))
+        a.add_answer(RR("xxx.abc.com",QTYPE.AAAA,rdata=AAAA("1234:5678::1")))
+        a.add_answer(RR(qname,QTYPE.TXT,ttl=self.ttl, rdata=TXT(output[:254])))
+        a.add_answer(*RR.fromZone("abc.com 60 A 1.2.3.4"))
+
+    RR.fromZone("abc.com IN A 1.2.3.4")
+    RR.fromZone(textwrap.dedent(z))
+
+    >>> RR(rname=None, rtype=1, rclass=1, ttl=0, rdata=None)
+    <DNS RR: '.' rtype=A rclass=IN ttl=0 rdata='None'>
+
+    >>> RR('cn', 1, 1, 30, A('0.0.0.0'))
+    <DNS RR: 'cn.' rtype=A rclass=IN ttl=30 rdata='0.0.0.0'>
+
+
+rsp=b'{"Status": 0,"TC": false,"RD": true,"RA": true,"AD": false,"CD": false,"Question":[ {"name": "www.google.com.","type": 1}],"Answer":[ {"name": "www.google.com.","type": 1,"TTL": 299,"data": "203.113.51.90"},{"name": "www.google.com.","type": 1,"TTL": 299,"data": "203.113.51.88"},{"name": "www.google.com.","type": 1,"TTL": 299,"data": "203.113.51.89"},{"name": "www.google.com.","type": 1,"TTL": 299,"data": "203.113.51.87"},{"name": "www.google.com.","type": 1,"TTL": 299,"data": "203.113.51.86"},{"name": "www.google.com.","type": 1,"TTL": 299,"data": "203.113.51.85"},{"name": "www.google.com.","type": 1,"TTL": 299,"data": "203.113.51.84"},{"name": "www.google.com.","type": 1,"TTL": 299,"data": "203.113.51.91"}],"Additional":[],"edns_client_subnet": "1.2.248.0/23","Comment": "Response from 216.239.32.10"}'
+j=json.loads(rsp.decode())
+
+for a in j['Answer']:
+  if a['type'] == 1:
+    print(a['data'])
+
+203.113.51.90
+203.113.51.88
+203.113.51.89
+203.113.51.87
+203.113.51.86
+203.113.51.85
+203.113.51.84
+203.113.51.91
+
+for it in j.items(): print(it)  # type(it): <class 'tuple'>
+('RA', True)
+('CD', False)
+('Question', [{'name': 'www.google.com.', 'type': 1}])
+('TC', False)
+('Answer', [{'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.90', 'TTL': 299}, {'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.88', 'TTL': 299}, {'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.89', 'TTL': 299}, {'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.87', 'TTL': 299}, {'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.86', 'TTL': 299}, {'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.85', 'TTL': 299}, {'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.84', 'TTL': 299}, {'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.91', 'TTL': 299}])
+('Comment', 'Response from 216.239.32.10')
+('Additional', [])
+('AD', False)
+('Status', 0)
+('RD', True)
+('edns_client_subnet', '1.2.248.0/23')
+
+for it in j.items(): print(it[0])
+RA
+CD
+Question
+TC
+Answer
+Comment
+Additional
+AD
+Status
+RD
+edns_client_subnet
+
+for k in j['Answer']: list(k.items())[2]
+('data', '203.113.51.90')
+('data', '203.113.51.88')
+('data', '203.113.51.89')
+('data', '203.113.51.87')
+('data', '203.113.51.86')
+('data', '203.113.51.85')
+('data', '203.113.51.84')
+('data', '203.113.51.91')
+
+for k in j['Answer']: print(k)  # type(k): <class 'dict'>
+{'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.90', 'TTL': 299}
+{'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.88', 'TTL': 299}
+{'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.89', 'TTL': 299}
+{'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.87', 'TTL': 299}
+{'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.86', 'TTL': 299}
+{'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.85', 'TTL': 299}
+{'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.84', 'TTL': 299}
+{'name': 'www.google.com.', 'type': 1, 'data': '203.113.51.91', 'TTL': 299}
+
+for k in j['Answer']: print(k.items())
+dict_items([('name', 'www.google.com.'), ('type', 1), ('data', '203.113.51.90'), ('TTL', 299)])
+dict_items([('name', 'www.google.com.'), ('type', 1), ('data', '203.113.51.88'), ('TTL', 299)])
+dict_items([('name', 'www.google.com.'), ('type', 1), ('data', '203.113.51.89'), ('TTL', 299)])
+dict_items([('name', 'www.google.com.'), ('type', 1), ('data', '203.113.51.87'), ('TTL', 299)])
+dict_items([('name', 'www.google.com.'), ('type', 1), ('data', '203.113.51.86'), ('TTL', 299)])
+dict_items([('name', 'www.google.com.'), ('type', 1), ('data', '203.113.51.85'), ('TTL', 299)])
+dict_items([('name', 'www.google.com.'), ('type', 1), ('data', '203.113.51.84'), ('TTL', 299)])
+dict_items([('name', 'www.google.com.'), ('type', 1), ('data', '203.113.51.91'), ('TTL', 299)])
+
+for k in j['Answer']: print(k.keys())
+dict_keys(['name', 'type', 'data', 'TTL'])
+dict_keys(['name', 'type', 'data', 'TTL'])
+dict_keys(['name', 'type', 'data', 'TTL'])
+dict_keys(['name', 'type', 'data', 'TTL'])
+dict_keys(['name', 'type', 'data', 'TTL'])
+dict_keys(['name', 'type', 'data', 'TTL'])
+dict_keys(['name', 'type', 'data', 'TTL'])
+dict_keys(['name', 'type', 'data', 'TTL'])
+
+for k in j['Answer']: print(list(k.keys()))
+['name', 'type', 'data', 'TTL']
+['name', 'type', 'data', 'TTL']
+['name', 'type', 'data', 'TTL']
+['name', 'type', 'data', 'TTL']
+['name', 'type', 'data', 'TTL']
+['name', 'type', 'data', 'TTL']
+['name', 'type', 'data', 'TTL']
+['name', 'type', 'data', 'TTL']
+
+for k in j['Answer']: print(k.values())
+dict_values(['www.google.com.', 1, '203.113.51.90', 299])
+dict_values(['www.google.com.', 1, '203.113.51.88', 299])
+dict_values(['www.google.com.', 1, '203.113.51.89', 299])
+dict_values(['www.google.com.', 1, '203.113.51.87', 299])
+dict_values(['www.google.com.', 1, '203.113.51.86', 299])
+dict_values(['www.google.com.', 1, '203.113.51.85', 299])
+dict_values(['www.google.com.', 1, '203.113.51.84', 299])
+dict_values(['www.google.com.', 1, '203.113.51.91', 299])
+
+for k in j['Answer']: print(list(k.values())[2])
+203.113.51.90
+203.113.51.88
+203.113.51.89
+203.113.51.87
+203.113.51.86
+203.113.51.85
+203.113.51.84
+203.113.51.91
+
+for k in j['Answer']: print(list(k.items())[2][1])
+203.113.51.90
+203.113.51.88
+203.113.51.89
+203.113.51.87
+203.113.51.86
+203.113.51.85
+203.113.51.84
+203.113.51.91
+
+dir(tuple)
+['__add__', '__class__', '__contains__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__',
+'__getattribute__', '__getitem__', '__getnewargs__', '__gt__', '__hash__', '__init__', '__iter__', '__le__',
+'__len__', '__lt__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__rmul__',
+'__setattr__', '__sizeof__', '__str__', '__subclasshook__', 'count', 'index']
+
+dir(list)
+['__add__', '__class__', '__contains__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__',
+'__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__iadd__', '__imul__', '__init__', '__iter__',
+'__le__', '__len__', '__lt__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__','__reversed__',
+'__rmul__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'append', 'clear', 'copy', 'count',
+'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
+
+dir(set)
+['__and__', '__class__', '__contains__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__',
+'__getattribute__', '__gt__', '__hash__', '__iand__', '__init__', '__ior__', '__isub__', '__iter__', '__ixor__',
+'__le__', '__len__', '__lt__', '__ne__', '__new__', '__or__', '__rand__', '__reduce__', '__reduce_ex__', '__repr__',
+'__ror__', '__rsub__', '__rxor__', '__setattr__', '__sizeof__', '__str__', '__sub__', '__subclasshook__', '__xor__',
+'add', 'clear', 'copy', 'difference', 'difference_update', 'discard', 'intersection', 'intersection_update', 'isdisjoint',
+'issubset', 'issuperset', 'pop', 'remove', 'symmetric_difference', 'symmetric_difference_update', 'union', 'update']
+
+dir(dict)
+['__class__', '__contains__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__',
+'__getattribute__', '__getitem__', '__gt__', '__hash__', '__init__', '__iter__', '__le__', '__len__', '__lt__', '__ne__',
+'__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__',
+'clear', 'copy', 'fromkeys', 'get', 'items', 'keys', 'pop', 'popitem', 'setdefault', 'update', 'values']
+
+'''
