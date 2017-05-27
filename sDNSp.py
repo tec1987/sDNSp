@@ -9,8 +9,7 @@ def cprint(_args, color):   # 被多线程调用，应该加个锁，暂时先�
     print(_args)
     windll.kernel32.SetConsoleTextAttribute(stdout_handle, 7)
 
-import sys, time, datetime, random, threading, traceback, struct, json
-import socketserver, pycurl
+import sys, time, datetime, random, threading, traceback, struct, json, re, socketserver, pycurl
 from collections import OrderedDict
 from io import BytesIO
 from IPy import IP
@@ -76,7 +75,7 @@ def myIP():
 
     def wdf(buf):
         nonlocal fb, wr_buf
-        if fb: wr_buf = buf.decode().split('Debug')[0].split(); fb = False
+        if fb: wr_buf = buf.decode().split('Debug')[0]; fb = False
 
     c = pycurl.Curl()
     c.setopt(c.NOPROGRESS, 1)
@@ -105,7 +104,7 @@ def myIP():
                 c.setopt(c.SSL_ENABLE_ALPN, 0)
             try: c.perform()
             except pycurl.error as err: cprint("[Error]:[%s] %s" % (u, err), 0xE); qip.pop(u)
-            else: qip[u]=wr_buf[0]; fb = True
+            else: qip[u]=wr_buf.split()[0]; fb = True
     c.close(); del c
     # global eip
     if len(set(qip.values())) == 1: eip = list(qip.values())[0] # 判断外网IP是否唯一
@@ -117,8 +116,8 @@ def myIP():
             c = pycurl.Curl()
             #c.setopt(c.VERBOSE, 1)  # 显示详细输出，调试用
             c.setopt(c.NOPROGRESS, 1)
-            c.setopt(c.CONNECTTIMEOUT_MS, 600) # 连接阶段超时时间，毫秒为单位
-            c.setopt(c.TIMEOUT_MS, 1200)
+            c.setopt(c.CONNECTTIMEOUT_MS, 800) # 连接阶段超时时间，毫秒为单位
+            c.setopt(c.TIMEOUT_MS, 2300)
             c.setopt(c.MAXREDIRS, 0)
             c.setopt(c.USERAGENT, 'Curl')
             c.setopt(c.DEFAULT_PROTOCOL, 'https')   # 默认协议
@@ -131,9 +130,9 @@ def myIP():
             c.setopt(c.RESOLVE, ['redirector.gvt1.com:443:'+ip])
             c.setopt(c.URL, 'redirector.gvt1.com/report_mapping')
             c.setopt(c.WRITEFUNCTION, wdf)
-            try: c.perform();   # print('cc = %s\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'%c.getinfo(c.PRIMARY_IP))
+            try: c.perform()
             except pycurl.error as err: cprint("[Error]:[%s] %s" % (ip, err), 0xE); # qip[ip]=err
-            else: qip[ip]=wr_buf[0],wr_buf[8][1:-1]; fb = True; p.append(ip); # print(qip[ip])
+            else: qip[ip]=wr_buf.split()[0],re.compile(r'\d+.\d+.\d+.\d+/\d+').findall(wr_buf)[0]; fb = True; p.append(ip); # print('cip = %s\t%r'%(c.getinfo(c.PRIMARY_IP),qip[ip]))
             time.sleep(.3)
             c.close()
             del c, buf
@@ -256,7 +255,8 @@ class BaseRequestHandler(socketserver.BaseRequestHandler):
         try:
             data = self.get_data()
             # print('len=%d: %s'%(len(data),''.join('%02X '%x for x in data)), end='\n')  # repr(data).replace('\\x', '')[1:-1]
-            self.send_data(dns_response(data, self.client_address[0]))
+            if len(data) > 12: self.send_data(dns_response(data, self.client_address[0]))
+            else: cprint('The received data is not a DNS request. ignore it!', 14)
         except Exception: traceback.print_exc(file=sys.stderr)
 
 
@@ -264,12 +264,13 @@ class TCPRequestHandler(BaseRequestHandler):
 
     def get_data(self):
         data = self.request.recv(8192)
-        sz = struct.unpack('!H',data[:2])[0]
-        # int.from_bytes(data[:2],'big')   int(binascii.hexlify(data[:2]),16)   int.from_bytes([255,255,255,255],'big')   codecs.encode(b'\x12\xcd','hex')
-        if sz < len(data) - 2:
-            raise Exception("Wrong size of TCP packet")
-        elif sz > len(data) - 2:
-            raise Exception("Too big TCP packet")
+        if len(data) > 1:
+            sz = struct.unpack('!H',data[:2])[0]
+            # int.from_bytes(data[:2],'big')   int(binascii.hexlify(data[:2]),16)   int.from_bytes([255,255,255,255],'big')   codecs.encode(b'\x12\xcd','hex')
+            if sz < len(data) - 2:
+                raise Exception("Wrong size of TCP packet")
+            elif sz > len(data) - 2:
+                raise Exception("Too big TCP packet")
         return data[2:]
 
     def send_data(self, data):
